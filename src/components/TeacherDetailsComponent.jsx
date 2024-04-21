@@ -74,7 +74,7 @@ const TeacherDetailsComponent = () => {
                     </select>
                 </div>
                
-                <button type="submit" className="w-full px-4 py-2 mt-4 text-white border rounded-2xl bg-slate-400 hover:bg-slate-800">
+                <button type="submit" className="w-full px-4 py-2 mt-4 text-white border bg-slate-400 hover:bg-slate-800">
                     Add
                 </button>
             </form>

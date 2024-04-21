@@ -1,41 +1,35 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; 
 
 const LoginComponent = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate();
+    const [success, setSuccess] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         try {
-            const response = await fetch('http://localhost:5000/TeacherLogin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
+            const response = await axios.post('http://localhost:5000/TeacherLogin', {
+                email,
+                password
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                if (data && data._id) {
-                    navigate('/teacherDetails');
-                } else {
-                    setError('Invalid email or password');
-                }
-            } else {
-                const data = await response.json();
-                setError(data.message);
+            
+            if (response.status === 200) {
+                setSuccess(true);
+            
+                setTimeout(() => {
+                    window.location.href = '/entryPage';
+                }, 2000);
             }
         } catch (error) {
-            console.error('Error logging in:', error);
-            setError('Error logging in. Please try again later.');
+            console.error('Login failed:', error);
+            setError('Invalid email or password');
         }
     };
-    
+
     return (
         <div className="max-w-md p-6 mx-auto mt-8 bg-gray-500 border shadow-md rounded-2xl ">
             <h2 className="mb-4 text-2xl font-semibold">Login</h2>
@@ -64,8 +58,9 @@ const LoginComponent = () => {
                         required
                     />
                 </div>
-                {error && <p className="text-red-600">{error}</p>}
-                <button type="submit" className="w-full px-4 py-2 mt-4 text-white border rounded-2xl bg-slate-400 hover:bg-slate-800">
+                {error && <p className="text-red-500">{error}</p>}
+                {success && <p className="text-green-500">Login successful! Redirecting...</p>}
+                <button type="submit" className="px-4 py-2 font-bold text-white border rounded bg-slate-400 hover:bg-slate-800">
                     Login
                 </button>
             </form>
