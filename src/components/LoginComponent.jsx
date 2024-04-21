@@ -1,35 +1,39 @@
 import React, { useState } from 'react';
-import axios from 'axios'; 
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const LoginComponent = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState(false);
+    const navigate = useNavigate();
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        
         try {
-            const response = await axios.post('http://localhost:5000/TeacherLogin', {
-                email,
-                password
-            });
+            const response = await axios.post('http://localhost:5000/TeacherLogin', formData);
 
-            
             if (response.status === 200) {
-                setSuccess(true);
-            
-                setTimeout(() => {
-                    window.location.href = '/entryPage';
-                }, 2000);
+                const data = response.data;
+                if (data && data._id) {
+                    navigate("/teacherDetails"); 
+                } else {
+                    setError('Invalid email or password');
+                }
+            } else {
+                setError('Error logging in. Please try again later.');
             }
         } catch (error) {
-            console.error('Login failed:', error);
-            setError('Invalid email or password');
+            console.error('Error logging in:', error);
+            setError('Error logging in. Please try again later.');
         }
     };
-
+    
     return (
         <div className="max-w-md p-6 mx-auto mt-8 bg-gray-500 border shadow-md rounded-2xl ">
             <h2 className="mb-4 text-2xl font-semibold">Login</h2>
@@ -39,8 +43,9 @@ const LoginComponent = () => {
                     <input
                         type="email"
                         id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
                         placeholder="Enter your email"
                         className="w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:border-black"
                         required
@@ -51,16 +56,16 @@ const LoginComponent = () => {
                     <input
                         type="password"
                         id="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
                         placeholder="Enter your password"
                         className="w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:border-black"
                         required
                     />
                 </div>
-                {error && <p className="text-red-500">{error}</p>}
-                {success && <p className="text-green-500">Login successful! Redirecting...</p>}
-                <button type="submit" className="px-4 py-2 font-bold text-white border rounded bg-slate-400 hover:bg-slate-800">
+                {error && <p className="text-red-600">{error}</p>}
+                <button type="submit" className="w-full px-4 py-2 mt-4 text-white border rounded-2xl bg-slate-400 hover:bg-slate-800">
                     Login
                 </button>
             </form>

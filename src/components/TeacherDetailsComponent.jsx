@@ -1,26 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // Import Axios for making HTTP requests
 
 const TeacherDetailsComponent = () => {
-
-    const [classes, setClasses] = useState([]);
     const [selectedClass, setSelectedClass] = useState('');
-    const [subjects, setSubjects] = useState([]);
     const [selectedSubject, setSelectedSubject] = useState('');
     const [currentDate, setCurrentDate] = useState('');
-
-
-    useEffect(() => {
-      
-        fetch('/api/classes')
-            .then(response => response.json())
-            .then(data => setClasses(data))
-            .catch(error => console.error('Error fetching classes:', error));
-
-        fetch('/api/subjects')
-            .then(response => response.json())
-            .then(data => setSubjects(data))
-            .catch(error => console.error('Error fetching subjects:', error));
-    }, []);
 
     useEffect(() => {
         const date = new Date();
@@ -37,8 +21,23 @@ const TeacherDetailsComponent = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-      
+        // Handle form submission here
     };
+
+    // Function to fetch teacher details
+    const fetchTeacherDetails = async () => {
+        try {
+            const response = await axios.get('/api/Teacher/teacher_id'); // Replace 'teacher_id' with the actual ID of the teacher
+            const data = response.data;
+            // Handle the fetched teacher details
+        } catch (error) {
+            console.error('Error fetching teacher details:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchTeacherDetails();
+    }, []);
 
     return (
         <div className="max-w-md p-6 mx-auto mt-8 bg-gray-500 border shadow-md rounded-2xl ">
@@ -54,9 +53,7 @@ const TeacherDetailsComponent = () => {
                         className="w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:border-black"
                     >
                         <option value="">Select a class</option>
-                        {classes.map(cls => (
-                            <option key={cls._id} value={cls._id}>{cls.name}</option>
-                        ))}
+                        {/* Render options based on teacher details */}
                     </select>
                 </div>
                 <div className="mb-4">
@@ -68,17 +65,13 @@ const TeacherDetailsComponent = () => {
                         className="w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:border-black"
                     >
                         <option value="">Select a subject</option>
-                        {subjects.map(subject => (
-                            <option key={subject._id} value={subject._id}>{subject.name}</option>
-                        ))}
+                        {/* Render options based on teacher details */}
                     </select>
                 </div>
-               
                 <button type="submit" className="w-full px-4 py-2 mt-4 text-white border bg-slate-400 hover:bg-slate-800">
                     Add
                 </button>
             </form>
-            
         </div>
     );
 }
