@@ -8,6 +8,8 @@ const TeacherDetailsComponent = () => {
   const [students, setStudents] = useState([]);
   const [successMsg, setSuccessMsg] = useState('');
   const [token, setToken] = useState('');
+  const [attendanceData, setAttendanceData] = useState({}); // State to hold attendance data for each student
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -33,37 +35,43 @@ const TeacherDetailsComponent = () => {
   }, [teacherData.teachSclass, token]);
 
   const handleAttendanceChange = (studentId, status) => {
-    setStudents(students.map(student => {
-      if (student._id === studentId) {
-        return { ...student, status }; // Update the status of the specific student
-      }
-      return student;
-    }));
+    // Update attendance data for the specific student
+    setAttendanceData({
+      ...attendanceData,
+      [studentId]: status
+    });
   };
 
   const submitAttendance = async () => {
     try {
+      if (!teacherData || !teacherData.teachSclass || !teacherData.teachSclass._id) {
+        setErrorMsg('Teacher data is missing or incomplete.');
+        return;
+      }
+
       const date = new Date().toISOString();
-      const attendanceUpdates = students.map(student => ({
-        studentId: student._id,
-        status: student.status,
-        date: date
-      }));
-  
-      // Send attendanceUpdates to the backend
-      await axios.put(`http://localhost:5000/StudentAttendance/${teacherData.teachSclass._id}`, { attendanceUpdates }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-  
+      
+      // Iterate over each student and send their attendance separately
+      for (const student of students) {
+        const studentAttendance = attendanceData[student._id] || 'absent'; // Get attendance for this student
+        await axios.put(`http://localhost:5000/studentAttendance/${teacherData.teachSclass._id}`, {
+          studentId: student._id,
+          status: studentAttendance,
+          date: date
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+      }
+
       setSuccessMsg('Attendance successfully updated.');
     } catch (error) {
       console.error('Error updating attendance:', error);
+      setErrorMsg('An error occurred while updating attendance.');
     }
   };
   
-
   return (
     <div className="container px-4 mx-auto mt-8">
       <h3 className="mt-8 mb-4 text-xl font-semibold">Students</h3>
@@ -89,7 +97,7 @@ const TeacherDetailsComponent = () => {
                         type="radio"
                         name={`attendance-${student._id}`}
                         value="present"
-                        checked={student.status === 'present'}
+                        checked={attendanceData[student._id] === 'present'}
                         onChange={() => handleAttendanceChange(student._id, 'present')}
                       /> Present
                     </label>
@@ -98,7 +106,7 @@ const TeacherDetailsComponent = () => {
                         type="radio"
                         name={`attendance-${student._id}`}
                         value="absent"
-                        checked={student.status === 'absent'}
+                        checked={attendanceData[student._id] === 'absent'}
                         onChange={() => handleAttendanceChange(student._id, 'absent')}
                       /> Absent
                     </label>
@@ -110,9 +118,11 @@ const TeacherDetailsComponent = () => {
           <button type="submit" className="px-4 py-2 mt-4 text-white bg-blue-500 rounded shadow">Submit Attendance</button>
         </form>
         {successMsg && <div className="p-4 mt-4 text-green-700 bg-green-100 rounded">{successMsg}</div>}
+        {errorMsg && <div className="p-4 mt-4 text-red-700 bg-red-100 rounded">{errorMsg}</div>}
       </div>
     </div>
   );
 };
 
 export default TeacherDetailsComponent;
+
