@@ -1,79 +1,118 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // Import Axios for making HTTP requests
+import { useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 const TeacherDetailsComponent = () => {
-    const [selectedClass, setSelectedClass] = useState('');
-    const [selectedSubject, setSelectedSubject] = useState('');
-    const [currentDate, setCurrentDate] = useState('');
+  const location = useLocation();
+  const teacherData = location.state || {};
+  const [students, setStudents] = useState([]);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [token, setToken] = useState('');
 
-    useEffect(() => {
-        const date = new Date();
-        setCurrentDate(date.toLocaleDateString());
-    }, []);
-
-    const handleClassChange = (e) => {
-        setSelectedClass(e.target.value);
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/Sclass/Students/${teacherData.teachSclass._id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const studentsWithAttendance = response.data.map(student => ({
+          ...student,
+          status: 'absent' // default status
+        }));
+        setStudents(studentsWithAttendance);
+      } catch (error) {
+        console.error('Error fetching students:', error);
+      }
     };
 
-    const handleSubjectChange = (e) => {
-        setSelectedSubject(e.target.value);
-    };
+    if (teacherData.teachSclass && teacherData.teachSclass._id) {
+      fetchStudents();
+    }
+  }, [teacherData.teachSclass, token]);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Handle form submission here
-    };
+  const handleAttendanceChange = (studentId, status) => {
+    setStudents(students.map(student => {
+      if (student._id === studentId) {
+        return { ...student, status }; // Update the status of the specific student
+      }
+      return student;
+    }));
+  };
 
-    // Function to fetch teacher details
-    const fetchTeacherDetails = async () => {
-        try {
-            const response = await axios.get('/api/Teacher/teacher_id'); // Replace 'teacher_id' with the actual ID of the teacher
-            const data = response.data;
-            // Handle the fetched teacher details
-        } catch (error) {
-            console.error('Error fetching teacher details:', error);
+  const submitAttendance = async () => {
+    try {
+      const date = new Date().toISOString();
+      const attendanceUpdates = students.map(student => ({
+        studentId: student._id,
+        status: student.status,
+        date: date
+      }));
+  
+      // Send attendanceUpdates to the backend
+      await axios.put(`http://localhost:5000/StudentAttendance/${teacherData.teachSclass._id}`, { attendanceUpdates }, {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-    };
+      });
+  
+      setSuccessMsg('Attendance successfully updated.');
+    } catch (error) {
+      console.error('Error updating attendance:', error);
+    }
+  };
+  
 
-    useEffect(() => {
-        fetchTeacherDetails();
-    }, []);
-
-    return (
-        <div className="max-w-md p-6 mx-auto mt-8 bg-gray-500 border shadow-md rounded-2xl ">
-            <h2 className="mb-4 text-2xl font-semibold">Adding Details</h2>
-            <p className="mb-4 font-bold text-gray-800">Current Date: {currentDate}</p>
-            <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                    <label htmlFor="class" className="block font-bold text-gray-800">Class:</label>
-                    <select
-                        id="class"
-                        value={selectedClass}
-                        onChange={handleClassChange}
-                        className="w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:border-black"
-                    >
-                        <option value="">Select a class</option>
-                        {/* Render options based on teacher details */}
-                    </select>
-                </div>
-                <div className="mb-4">
-                    <label htmlFor="subject" className="block font-bold text-gray-800">Subject:</label>
-                    <select
-                        id="subject"
-                        value={selectedSubject}
-                        onChange={handleSubjectChange}
-                        className="w-full px-4 py-2 mt-1 border rounded-md focus:outline-none focus:border-black"
-                    >
-                        <option value="">Select a subject</option>
-                        {/* Render options based on teacher details */}
-                    </select>
-                </div>
-                <button type="submit" className="w-full px-4 py-2 mt-4 text-white border bg-slate-400 hover:bg-slate-800">
-                    Add
-                </button>
-            </form>
-        </div>
-    );
-}
+  return (
+    <div className="container px-4 mx-auto mt-8">
+      <h3 className="mt-8 mb-4 text-xl font-semibold">Students</h3>
+      <div className="overflow-x-auto">
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          submitAttendance();
+        }}>
+          <table className="w-full table-auto">
+            <thead>
+              <tr>
+                <th className="px-4 py-2">Name</th>
+                <th className="px-4 py-2">Attendance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map(student => (
+                <tr key={student._id}>
+                  <td className="px-4 py-2">{student.name}</td>
+                  <td className="px-4 py-2">
+                    <label>
+                      <input
+                        type="radio"
+                        name={`attendance-${student._id}`}
+                        value="present"
+                        checked={student.status === 'present'}
+                        onChange={() => handleAttendanceChange(student._id, 'present')}
+                      /> Present
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name={`attendance-${student._id}`}
+                        value="absent"
+                        checked={student.status === 'absent'}
+                        onChange={() => handleAttendanceChange(student._id, 'absent')}
+                      /> Absent
+                    </label>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button type="submit" className="px-4 py-2 mt-4 text-white bg-blue-500 rounded shadow">Submit Attendance</button>
+        </form>
+        {successMsg && <div className="p-4 mt-4 text-green-700 bg-green-100 rounded">{successMsg}</div>}
+      </div>
+    </div>
+  );
+};
 
 export default TeacherDetailsComponent;

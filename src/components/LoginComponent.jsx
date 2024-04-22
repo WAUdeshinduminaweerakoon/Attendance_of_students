@@ -17,11 +17,18 @@ const LoginComponent = () => {
         
         try {
             const response = await axios.post('http://localhost:5000/TeacherLogin', formData);
-
+    
             if (response.status === 200) {
                 const data = response.data;
                 if (data && data._id) {
-                    navigate("/teacherDetails"); 
+                    navigate("/teacherDetails", {
+                        state: {
+                            email: formData.email,
+                            teacherId: data._id, 
+                            teachSclass: data.teachSclass,
+                            teachSubject: data.teachSubject
+                        }
+                    });
                 } else {
                     setError('Invalid email or password');
                 }
@@ -33,6 +40,7 @@ const LoginComponent = () => {
             setError('Error logging in. Please try again later.');
         }
     };
+    
     
     return (
         <div className="max-w-md p-6 mx-auto mt-8 bg-gray-500 border shadow-md rounded-2xl ">
