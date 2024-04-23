@@ -41,8 +41,7 @@ const LoginComponent = () => {
             setError('Error logging in. Please try again later.');
         }
     };
-    
-    
+       
     return (
         <div className="max-w-md p-6 mx-auto mt-8 bg-gray-500 border shadow-md rounded-2xl ">
             <h2 className="mb-4 text-2xl font-semibold">Login</h2>

@@ -77,7 +77,7 @@ const TeacherDetailsComponent = () => {
       <h3 className='mt-10 mb-2 text-xl font-semibold text-black'>Subject : {teacherData.teachSubject && teacherData.teachSubject.subName} </h3>
       <h3 className='mt-2 mb-2 text-xl font-semibold'>Class : {teacherData.teachSclass && teacherData.teachSclass.sclassName} </h3>
       <h3 className="mt-2 mb-4 text-xl font-semibold">Students List</h3>
-      {successMsg && <div className="p-4 mt-4 text-green-700 bg-green-100 rounded">{successMsg}</div>}
+      {successMsg && <div className="p-4 mt-4 text-green-600 rounded bg-slate-200">{successMsg}</div>}
       {errorMsg && <div className="p-4 mt-4 text-red-700 bg-red-100 rounded">{errorMsg}</div>}
       <div className="overflow-x-auto">
         <form onSubmit={(e) => {
