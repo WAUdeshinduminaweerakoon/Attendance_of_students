@@ -14,16 +14,18 @@ const TeacherDetailsComponent = () => {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/Sclass/Students/${teacherData.teachSclass._id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        const studentsWithAttendance = response.data.map(student => ({
-          ...student,
-          status: 'absent' // default status
-        }));
-        setStudents(studentsWithAttendance);
+        if (teacherData.teachSclass && teacherData.teachSclass._id) {
+          const response = await axios.get(`http://localhost:5000/Sclass/Students/${teacherData.teachSclass._id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          const studentsWithAttendance = response.data.map(student => ({
+            ...student,
+            status: 'absent' // default status
+          }));
+          setStudents(studentsWithAttendance);
+        }
       } catch (error) {
         console.error('Error fetching students:', error);
       }
@@ -72,8 +74,8 @@ const TeacherDetailsComponent = () => {
   
   return (
     <div className="container px-4 mx-auto mt-8 mb-24 overflow-y-auto ">
-      <h3 className='mt-10 mb-2 text-xl font-semibold'>Subject : {teacherData.teachSubject.name} </h3>
-      <h3 className='mt-10 mb-2 text-xl font-semibold'>Class : {teacherData.teachSclass.name} </h3>
+      <h3 className='mt-10 mb-2 text-xl font-semibold text-black'>Subject : {teacherData.teachSubject && teacherData.teachSubject.subName} </h3>
+      <h3 className='mt-2 mb-2 text-xl font-semibold'>Class : {teacherData.teachSclass && teacherData.teachSclass.sclassName} </h3>
       <h3 className="mt-2 mb-4 text-xl font-semibold">Students List</h3>
       {successMsg && <div className="p-4 mt-4 text-green-700 bg-green-100 rounded">{successMsg}</div>}
       {errorMsg && <div className="p-4 mt-4 text-red-700 bg-red-100 rounded">{errorMsg}</div>}
