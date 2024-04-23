@@ -26,7 +26,8 @@ const LoginComponent = () => {
                             email: formData.email,
                             teacherId: data._id, 
                             teachSclass: data.teachSclass,
-                            teachSubject: data.teachSubject
+                            teachSubject: data.teachSubject,
+                            
                         }
                     });
                 } else {
